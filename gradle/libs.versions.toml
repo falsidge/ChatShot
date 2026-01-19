@@ -1,6 +1,6 @@
 [versions]
 # Build system
-arch_loom = "1.11-SNAPSHOT"
+arch_loom = "1.13-SNAPSHOT"
 shadow = "8.1.1"
 publishing = "0.8.3"
 

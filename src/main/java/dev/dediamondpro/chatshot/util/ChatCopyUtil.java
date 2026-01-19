@@ -17,7 +17,6 @@ import dev.dediamondpro.chatshot.config.Config;
 import dev.dediamondpro.chatshot.util.clipboard.ClipboardUtil;
 import dev.dediamondpro.chatshot.util.clipboard.MacOSCompat;
 import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
-import net.minecraft.Util;
 import net.minecraft.client.GuiMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -38,6 +37,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 //? if <1.21.6 {
 /*import com.mojang.blaze3d.buffers.BufferType;
@@ -48,8 +48,17 @@ import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.renderer.fog.FogRenderer;
 //?}
 
+//?if <1.21.11 {
+/*import net.minecraft.Util;
+ *///?} else {
+import net.minecraft.util.Util;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+//?}
+
 public class ChatCopyUtil {
-    static public Function<RenderTarget, RenderType> CUSTOM_TEXT_LAYER = (RenderTarget rt) -> (RenderType.create(
+    //?if <1.21.11 {
+    /*static public Function<RenderTarget, RenderType> CUSTOM_TEXT_LAYER = (RenderTarget rt) -> (RenderType.create(
             "chatshot_text",
             786432,
             false,
@@ -59,6 +68,14 @@ public class ChatCopyUtil {
                     .setOutputState(new RenderStateShard.OutputStateShard("chatshot_fbo", () -> (rt)))
                     .setLightmapState(RenderStateShard.LIGHTMAP).createCompositeState(false))
     );
+    *///?} else {
+    static public Function<RenderTarget, RenderType> CUSTOM_TEXT_LAYER = (RenderTarget rt) -> (RenderType.create(
+            "chatshot_text",
+            RenderSetup.builder(RenderPipelines.TEXT)
+//                    .bufferSize(786432)
+                    .createRenderSetup()
+    ));
+    //?}
 
     public static void copy(List<GuiMessage.Line> lines, Component fullMessage, Minecraft client) {
         //? if <1.21.9 {
@@ -76,6 +93,7 @@ public class ChatCopyUtil {
         }
     }
 
+    private static Pattern formattingPattern = Pattern.compile("§[0-9a-z]");
     public static void copyString(List<GuiMessage.Line> lines, Component fullMessage, Minecraft client) {
         String clipboardString;
         if (fullMessage == null) {
@@ -87,6 +105,7 @@ public class ChatCopyUtil {
         } else {
             clipboardString = fullMessage.getString();
         }
+        clipboardString = formattingPattern.matcher(clipboardString).replaceAll("");
         client.keyboardHandler.setClipboard(clipboardString);
         if (Config.INSTANCE.showCopyMessage) {
             client.gui.getChat().addMessage(Component.translatable("chatshot.text.success"));
@@ -144,10 +163,13 @@ public class ChatCopyUtil {
         /*GuiGraphics context = new GuiGraphics(client, customConsumer);
          *///?} else {
         GuiRenderState renderState = new GuiRenderState();
-        GuiGraphics context = new GuiGraphics(client, renderState);
+        //?if >=1.21.11 {
+        GuiGraphics context = new GuiGraphics(client, renderState, 0, 0);
+        //?} else
+        //GuiGraphics context = new GuiGraphics(client, renderState);
         //? if <1.21.9 {
         /*GuiRenderer guiRenderer = new GuiRenderer(renderState, customConsumer, List.of());
-        *///?} else {
+         *///?} else {
         GuiRenderer guiRenderer = new GuiRenderer(renderState, customConsumer, new SubmitNodeStorage(), client.gameRenderer.getFeatureRenderDispatcher(), List.of());
         //?}
         //?}

@@ -11,8 +11,8 @@ import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,9 +20,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-//? if >=1.21.9 {
+//? if >=1.21.9
 import net.minecraft.client.input.MouseButtonEvent;
-//?}
+
+//?if <1.21.11
+//import net.minecraft.client.renderer.RenderType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +46,58 @@ public abstract class ChatScreenMixin extends Screen {
         this.mouseClicked = false;
     }
 
+    // Functions removed in MC code, so re-implementation
+    //?>=1.21.11 {
+    @Unique
+    private double chatshot$toChatLineYA(double d) {
+        ChatComponent chatHud = getChatHud();
+        double d0 = (double)this.minecraft.getWindow().getGuiScaledHeight() - d - (double)40.0F;
+        return d0 / (chatHud.getScale() * (double)chatHud.getLineHeight());
+    }
+
+    @Unique
+    private int chatshot$getMessageLineIndexAt(double d, double e) {
+        ChatComponent chatHud = getChatHud();
+
+        if (chatHud.isChatFocused() && !chatHud.isChatHidden()) {
+            if (!(d < (double)-4.0F) && !(d > (double) Mth.floor((double)chatHud.getWidth() / chatHud.getScale()))) {
+                int i = Math.min(chatHud.getLinesPerPage(), chatHud.trimmedMessages.size());
+                if (e >= (double)0.0F && e < (double)i) {
+                    int j = Mth.floor(e + (double)chatHud.chatScrollbarPos);
+                    if (j >= 0 && j < chatHud.trimmedMessages.size()) {
+                        return j;
+                    }
+                }
+
+                return -1;
+            } else {
+                return -1;
+            }
+        } else {
+            return -1;
+        }
+    }
+
+    @Unique
+    private int chatshot$getMessageIndexA(double d, double e) {
+        ChatComponent chatHud = getChatHud();
+        int i = this.chatshot$getMessageLineIndexAt(d, e);
+        if (i == -1) {
+            return -1;
+        } else {
+            while(i >= 0) {
+                if (((GuiMessage.Line)chatHud.trimmedMessages.get(i)).endOfEntry()) {
+                    return i;
+                }
+
+                --i;
+            }
+
+            return i;
+        }
+    }
+    //?}
+
     @Unique
     private void drawLineButton(GuiGraphics context, int mouseX, int mouseY) {
         ChatComponent chatHud = getChatHud();
@@ -51,8 +105,13 @@ public abstract class ChatScreenMixin extends Screen {
         ChatHudLocals chatHudL = (ChatHudLocals) chatHud;
 
         float chatScale = (float) chatHud.getScale();
-        int chatLineY = (int) chatHudA.toChatLineYA(mouseY);
+        //?if <1.21.11 {
+        /*int chatLineY = (int) chatHudA.toChatLineYA(mouseY);
         int messageIndex = chatHudA.getMessageIndexA(0, chatLineY);
+        *///?} else {
+        int chatLineY = (int) chatshot$toChatLineYA(mouseY);
+        int messageIndex = chatshot$getMessageIndexA(0, chatLineY);
+        //?}
         int buttonX = (int) (chatHud.getWidth() + 14 * chatScale);
         if (messageIndex == -1 || mouseX > buttonX + 14 * chatScale) return;
 

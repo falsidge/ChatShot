@@ -17,11 +17,13 @@ public interface ChatHudAccessor {
     @Accessor("trimmedMessages")
     List<GuiMessage.Line> getVisibleMessages();
 
-    @Invoker("getMessageEndIndexAt")
+    //?if <1.21.11 {
+    /*@Invoker("getMessageEndIndexAt")
     int getMessageIndexA(double chatLineX, double chatLineY);
 
     @Invoker("screenToChatY")
     double toChatLineYA(double y);
+    *///?}
 
     @Invoker("getLineHeight")
     int getLineHeightA();

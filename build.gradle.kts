@@ -168,7 +168,7 @@ base.archivesName.set(
 )
 
 publishMods {
-//    file.set(tasks.remapJar.get().archiveFile)
+    file.set(tasks.jar.get().archiveFile)
     displayName.set("[${mcVersion.get(mcPlatform).getName()}-${mcPlatform.loaderString}] $mod_name $mod_version")
     version.set(mod_version)
     changelog.set(rootProject.file("changelog.md").readText())
@@ -210,15 +210,15 @@ publishMods {
 }
 
 tasks {
-//    remapJar {
-//        finalizedBy("copyJar")
+    jar {
+        finalizedBy("copyJar")
 //        if (mcPlatform.isNeoForge) {
 //            atAccessWideners.add(accessWidener)
 //        }
-//    }
+    }
     register<Copy>("copyJar") {
         File("${project.rootDir}/jars").mkdir()
-//        from(remapJar.get().archiveFile)
+        from(jar.get().archiveFile)
         into("${project.rootDir}/jars")
     }
     clean { delete("${project.rootDir}/jars") }

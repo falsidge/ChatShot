@@ -96,6 +96,8 @@ val noChatReportsVersion = VersionDefinition(
     "1.21.10-neoforge" to "NeoForge-1.21.10-v2.16.0",
     "1.21.11-fabric" to "Fabric-1.21.11-v2.18.0",
     "1.21.11-neoforge" to "NeoForge-1.21.11-v2.18.0",
+    "26.1.2-fabric" to "Fabric-26.1-v2.19.0",
+    "26.1.2-neoforge" to "NeoForge-26.1-v2.19.0",
 )
 
 stonecutter {
